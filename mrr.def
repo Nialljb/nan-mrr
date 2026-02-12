@@ -1,0 +1,80 @@
+Bootstrap: docker
+From: nialljb/njb-ants-fsl-base:0.0.2
+
+%help
+    MRR (Multi-Resolution Registration) Singularity Image
+    
+    This container runs ANTs-based multi-resolution registration for MRI data,
+    specifically designed for processing orthogonal T2w acquisitions.
+    
+    Usage:
+        singularity exec mrr.sif python /app/run_mrr.py --input <input> --output <output>
+    
+    For more information:
+        singularity exec mrr.sif python /app/run_mrr.py --help
+
+%labels
+    Author: Niall Bourke
+    Version: 1.0.0
+    Description: Multi-Resolution Registration using ANTs
+    License: MIT
+
+%environment
+    export HOME=/root
+    export PATH="/opt/conda/bin:${PATH}"
+    export FSLDIR="/opt/conda"
+    export MRR_TEMPLATES_DIR="/app/templates"
+    export ANTSPATH="/opt/ants/bin/"
+    export LANG="C.UTF-8"
+
+%files
+    # Copy the entire application
+    ./ /app/
+
+%post
+    # Handle apt operations with better fakeroot compatibility
+    export DEBIAN_FRONTEND=noninteractive
+    
+    # Only run apt if not using fakeroot or if absolutely necessary
+    if [ -z "$SINGULARITY_FAKEROOT" ] && [ "$(id -u)" = "0" ]; then
+        apt-get update || echo "apt-get update failed, continuing..."
+        apt-get clean || echo "apt-get clean failed, continuing..."
+    fi
+    
+    # Install Python dependencies
+    cd /app
+    pip install --no-cache-dir -r requirements.txt
+    
+    # Set permissions
+    chmod +rx /app/run_mrr.py
+    chmod +wrx /app/app/ciso-gear.sh
+    chmod +wrx /app/app/mrr-singularity.sh
+    
+    # Clean up Python cache
+    find /root/.cache -type f -delete 2>/dev/null || true
+    find /tmp -name "*.pyc" -delete 2>/dev/null || true
+    find /tmp -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+    
+    echo "MRR Singularity image built successfully!"
+
+%runscript
+    # Default run script
+    exec python3 /app/run_mrr.py "$@"
+
+%test
+    # Test that required tools are available
+    echo "Testing ANTs installation..."
+    which antsRegistration || exit 1
+    which antsMultivariateTemplateConstruction2.sh || exit 1
+    which ResampleImageBySpacing || exit 1
+    
+    echo "Testing FSL installation..."
+    which fslinfo || exit 1
+    
+    echo "Testing Python environment..."
+    python3 -c "import nibabel, numpy, pandas; print('Python dependencies OK')"
+    
+    echo "Testing MRR script..."
+    python3 /app/run_mrr.py --help > /dev/null || exit 1
+    
+    echo "All tests passed!"

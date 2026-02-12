@@ -1,0 +1,81 @@
+{
+  "name": "mrr",
+  "version": "1.0.0",
+  "description": "MRR: Multi-Resolution Registration using ANTs for orthogonal T2w acquisitions",
+  "author": "Niall Bourke",
+  "maintainer": "Niall Bourke <niall.bourke@kcl.ac.uk>",
+  "license": "MIT",
+  "url": "https://github.com/ANTsX/ANTs",
+  "cite": "A reproducible evaluation of ANTs similarity metric performance in brain image registration: Avants BB, Tustison NJ, Song G, Cook PA, Klein A, Gee JC. Neuroimage, 2011. http://www.ncbi.nlm.nih.gov/pubmed/20851191",
+  
+  "config": {
+    "image_dimension": {
+      "default": 3,
+      "description": "Image dimension for registration (2, 3, or 4)",
+      "type": "integer",
+      "minimum": 2,
+      "maximum": 4
+    },
+    "iterations": {
+      "default": 4,
+      "description": "Number of template construction iterations",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10
+    },
+    "transformation_model": {
+      "default": "SyN",
+      "description": "Transformation model for registration",
+      "type": "string",
+      "choices": ["BSplineSyN", "SyN", "TimeVaryingBSplineVelocityField", "TimeVaryingVelocityField"]
+    },
+    "similarity_metric": {
+      "default": "MI",
+      "description": "Similarity metric for registration",
+      "type": "string",
+      "choices": ["CC", "MI", "MSQ"]
+    },
+    "target_template": {
+      "default": "None",
+      "description": "Target template file (None for self-reference)",
+      "type": "string"
+    },
+    "prefix": {
+      "default": "mrr",
+      "description": "Output prefix",
+      "type": "string"
+    },
+    "phantom": {
+      "default": false,
+      "description": "Process as phantom data",
+      "type": "boolean"
+    }
+  },
+  
+  "environment": {
+    "ANTSPATH": "/opt/ants/bin/",
+    "FSLDIR": "/opt/conda",
+    "PATH": "/opt/conda/bin:/opt/ants/bin/:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  },
+  
+  "container_info": {
+    "type": "singularity",
+    "base_image": "nialljb/njb-ants-fsl-base:0.0.2",
+    "entry_point": "python3 /app/run_mrr.py"
+  },
+  
+  "hpc_config": {
+    "image_path": "/home/{hpc_username}/images/mrr.sif",
+    "command_template": "python /app/run_mrr.py --input {input_file} --output {output_dir}",
+    "input_type": "acquisition", 
+    "input_pattern": ".*_T2w\\.nii\\.gz$",
+    "input_subdir": "anat",
+    "requires_derivative": null,
+    "output_name": "mrr",
+    "default_cpus": 4,
+    "default_mem": "24G",
+    "default_gpus": 0,
+    "default_time": "03:00:00",
+    "description": "MRI reconstruction and registration"
+  }
+}
