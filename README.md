@@ -34,27 +34,69 @@ If no template is provided, the algorithm creates an initial template by rigid r
 
 ## Installation and Setup
 
+### What is Singularity?
+
+Singularity (now commonly distributed as Apptainer) is a container runtime designed for HPC environments. Unlike typical Docker workflows, it runs containers in a way that is more compatible with shared clusters and schedulers (e.g., SLURM), while packaging software and dependencies into a single `.sif` image file.
+
 ### Building the Singularity Image
 
+This repository provides two build paths. In both cases, the final output is a `.sif` image you can run with `singularity exec`.
+
+#### Requirements
+
+- Linux host with `singularity`/Apptainer available on `PATH`
+- `mrr.def` present in the repository root
+- For definition-file builds: either
+    - fakeroot support enabled (`singularity build --fakeroot ...`), or
+    - `sudo` access for root build fallback
+- For Docker conversion builds (optional path): working Docker daemon and permission to run `docker build`
+
+Quick checks:
+
+```bash
+singularity --version
+test -f mrr.def && echo "mrr.def found"
+```
+
 #### Option 1: Build from Singularity definition file (recommended)
+
 ```bash
 # Build the image
 ./build_singularity.sh
 
-# This creates mrr.sif in your current directory
+# Output: mrr.sif in the repository root
 ```
 
+What this script does:
+
+- Verifies `singularity` and `mrr.def` are available
+- Builds with fakeroot first, then falls back to `sudo singularity build` if needed
+- Runs `singularity test mrr.sif` after build
+
 #### Option 2: Build from Docker then convert
+
 ```bash
 # Build Docker image first, then convert to Singularity
 ./build_docker_to_singularity.sh
+
+# Output: mrr_from_docker.sif
 ```
+
+Use this path when you prefer building from `Dockerfile` first or your environment handles Docker builds more reliably than direct definition-file builds.
 
 ### Prerequisites
 
-- Singularity 3.0+ installed on your system
-- Access to Docker Hub (for base image)
-- ANTs and FSL tools (included in base image)
+- Singularity/Apptainer installed on your system
+- Network access to pull base container image(s) during build
+- Sufficient local disk space for build temp files and final image
+- ANTs and FSL tools are included inside the built image (no separate host install required)
+
+### Verify the built image
+
+```bash
+singularity test mrr.sif
+singularity exec mrr.sif python /app/run_mrr.py --help
+```
 
 ---
 
