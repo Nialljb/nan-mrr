@@ -17,7 +17,7 @@
 module load singularity
 
 # Define paths - MODIFY THESE FOR YOUR ENVIRONMENT
-MRR_IMAGE="/home/${USER}/images/mrr.sif"
+MRR_IMAGE="/home/${USER}/cortex/modules/mrr.sif"
 INPUT_DIR="/data/bids_dataset"
 OUTPUT_DIR="/results/mrr_output"
 WORK_DIR="/tmp/mrr_work_${SLURM_JOB_ID}"

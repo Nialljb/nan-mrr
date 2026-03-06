@@ -65,7 +65,7 @@
   },
   
   "hpc_config": {
-    "image_path": "/home/{hpc_username}/images/mrr.sif",
+    "image_path": "/home/{hpc_username}/cortex/modules/mrr.sif",
     "command_template": "python /app/run_mrr.py --input {input_file} --output {output_dir}",
     "input_type": "acquisition", 
     "input_pattern": ".*_T2w\\.nii\\.gz$",
